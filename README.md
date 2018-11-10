@@ -76,34 +76,6 @@ class NullDataStore
 end
 Resque.stat_data_store = NullDataStore.new
 
-```
-
-```
-cd app_root
-QUEUE=file_serve rake resque:work
-
-QUEUE=file_serve rake resque:work
-QUEUE=file_serve rake environment resque:work
-
-PIDFILE=./resque.pid QUEUE=file_serve rake environment resque:work
-
-PIDFILE=./resque.pid BACKGROUND=yes QUEUE=file_serve \
-  rake environment resque:work
-  
-INTERVAL=0.1 QUEUE=file_serve rake environment resque:work
-
-QUEUES=file_serve,warm_cache rake resque:work
-
-QUEUES=critical,archive,high,low rake resque:work
-
-QUEUE=archive rake resque:work
-
-QUEUE=* rake resque:work
-
-COUNT=5 QUEUE=* rake resque:workers
-
-ps -e -o pid,command | grep [r]esque
-ps -e -o pid, command | grep [r]esque
 
 class MyTask
   def self.perform
@@ -136,16 +108,88 @@ require 'resque/tasks'
 
 require 'resque/tasks'
 
-rails_root = ENV[] || File.dirname() + ''
-rails_env = ENV[] || ''
-config_file = rails_root + ''
-resque_config = YAML::load()
-Resque.redis = resquee_config[]
+rails_root = ENV['RAILS_ROOT'] || File.dirname(__FILE__) + '/../..'
+rails_env = ENV['RAILS_ENV'] || 'development'
+config_file = rails_root + '/config/resque.yml'
+resque_config = YAML::load(ERB.new(IO.read(config_file)).result)
+Resque.redis = resquee_config[rails_env]
 
-Resque.inline = ENV[] == ""
+Resque.inline = ENV['RAILS_ENV'] == "cucumber"
 
 Resque.redis.namespace = "resque:GithHub"
 ```
 
 ```
+cd app_root
+QUEUE=file_serve rake resque:work
+
+QUEUE=file_serve rake resque:work
+QUEUE=file_serve rake environment resque:work
+
+PIDFILE=./resque.pid QUEUE=file_serve rake environment resque:work
+
+PIDFILE=./resque.pid BACKGROUND=yes QUEUE=file_serve \
+  rake environment resque:work
+  
+INTERVAL=0.1 QUEUE=file_serve rake environment resque:work
+
+QUEUES=file_serve,warm_cache rake resque:work
+
+QUEUES=critical,archive,high,low rake resque:work
+
+QUEUE=archive rake resque:work
+
+QUEUE=* rake resque:work
+
+COUNT=5 QUEUE=* rake resque:workers
+
+ps -e -o pid,command | grep [r]esque
+ps -e -o pid, command | grep [r]esque
+
+resque-web
+resque-web -p 8282
+resque-web -p 8282 rails_root/config/initalizers/resque.rb
+resque-web -p 8282 -N myapp
+resque-web -p 8282 -r localhost:6379:2
+
+gem install bundler
+bundle install
+gem install resque
+rakeup config.ru
+
+QUEUE=* rake resque:work
+
+gem install resque
+
+cat config/initializers/load_resque.rb
+
+./script/server
+
+QUEUE=* rake environment resque:work
+
+./script/plugin install git://github.com/resque/resque
+
+QUEUE=* rake environment resque:work
+cat Gemfile
+bundle install
+rails server
+QUEUE=* rake environment resque:work
+RAILS_ENV=production resque-web rails-web rails_root/config/initializers/resque.rb
+
+git clone git://github.com/resque/resque.git
+cd resque
+rake test
+
+irb
+require 'rubygems'
+require 'redis/namespace'
+```
+
+```
+// config/resque.yml
+development: localhost:6379
+test: localhost:6379
+staging: redis1.se.github.com:6379
+fi: localhost:6379
+production: <%= ENV['REDIS_URL'] %>
 ```
